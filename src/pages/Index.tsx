@@ -52,6 +52,28 @@ const slideVariants = {
   }),
 };
 
+// Helper to generate photo paths for a year
+const generateYearPhotos = (yearNum: number, months: string[]) => {
+  const data: Record<string, string[]> = {};
+  months.forEach(m => {
+    const monthLower = m.toLowerCase();
+    data[m] = [
+      `/photos/year${yearNum}/${monthLower}/1.jpg`,
+      `/photos/year${yearNum}/${monthLower}/2.jpg`,
+      `/photos/year${yearNum}/${monthLower}/3.jpg`,
+      `/photos/year${yearNum}/${monthLower}/4.jpg`,
+      `/photos/year${yearNum}/${monthLower}/5.jpg`,
+    ];
+  });
+  return data;
+};
+
+const PHOTO_DATA: Record<string, Record<string, string[]>> = {
+  "Year One": generateYearPhotos(1, MONTHS),
+  "Year Two": generateYearPhotos(2, MONTHS),
+  "Year Three": generateYearPhotos(3, ["March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "January", "February", "March"]),
+};
+
 const Index = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -96,9 +118,9 @@ const Index = () => {
 
   const pages = [
     <OpeningPage key="opening" onBegin={goNext} />,
-    <YearPage key="year1" yearLabel="Year One" months={YEAR1_MONTHS} />,
-    <YearPage key="year2" yearLabel="Year Two" months={YEAR2_MONTHS} />,
-    <YearPage key="year3" yearLabel="Year Three" months={YEAR3_MONTHS} />,
+    <YearPage key="year1" yearLabel="Year One" months={YEAR1_MONTHS} photoData={PHOTO_DATA["Year One"]} />,
+    <YearPage key="year2" yearLabel="Year Two" months={YEAR2_MONTHS} photoData={PHOTO_DATA["Year Two"]} />,
+    <YearPage key="year3" yearLabel="Year Three" months={YEAR3_MONTHS} photoData={PHOTO_DATA["Year Three"]} />,
     <LoveLetterPage key="letter" />,
   ];
 

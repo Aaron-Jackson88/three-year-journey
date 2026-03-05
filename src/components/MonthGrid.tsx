@@ -21,20 +21,30 @@ const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
 
       <div className="grid grid-cols-3 grid-rows-2 gap-2 md:gap-3" style={{ aspectRatio: "3/2" }}>
         {/* Photo 1 - large, spans 2 rows */}
-        <div className="row-span-2 overflow-hidden rounded-lg">
+        <div className="row-span-2 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
           <img
+            key={`${month}-${year}-0`}
             src={photos[0]}
             alt={`${month} ${year} - 1`}
             className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+            onError={(e) => {
+              console.error(`Failed to load image: ${photos[0]}`);
+              (e.target as HTMLImageElement).src = "/placeholder.svg";
+            }}
           />
         </div>
         {/* Photos 2-5 - smaller grid */}
         {photos.slice(1, 5).map((photo, i) => (
-          <div key={i} className="overflow-hidden rounded-lg">
+          <div key={i} className="overflow-hidden rounded-lg bg-muted flex items-center justify-center">
             <img
+              key={`${month}-${year}-${i+1}`}
               src={photo}
               alt={`${month} ${year} - ${i + 2}`}
               className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+              onError={(e) => {
+                console.error(`Failed to load image: ${photo}`);
+                (e.target as HTMLImageElement).src = "/placeholder.svg";
+              }}
             />
           </div>
         ))}
