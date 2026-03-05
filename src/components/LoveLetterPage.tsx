@@ -1,6 +1,19 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 const LoveLetterPage = () => {
+  const [letterText, setLetterText] = useState("Loading your letter...");
+
+  useEffect(() => {
+    fetch("/letter.txt")
+      .then(res => {
+        if (!res.ok) throw new Error("Letter not found");
+        return res.text();
+      })
+      .then(text => setLetterText(text))
+      .catch(() => setLetterText("Write your love letter in public/letter.txt to see it here..."));
+  }, []);
+
   return (
     <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12">
       <motion.div
@@ -60,10 +73,10 @@ const LoveLetterPage = () => {
             My Dearest Love
           </h2>
 
-          <div className="min-h-[300px] rounded-lg border border-border/50 bg-background/50 p-6">
-            <p className="font-body text-base leading-relaxed text-muted-foreground italic">
-              Write your love letter here...
-            </p>
+          <div className="min-h-[300px] max-h-[60vh] overflow-y-auto rounded-lg border border-border/50 bg-background/50 p-6">
+            <div className="font-body text-base leading-relaxed text-muted-foreground italic whitespace-pre-wrap">
+              {letterText}
+            </div>
           </div>
 
           <div className="mt-8 text-right font-display text-lg text-gold-dark italic">
