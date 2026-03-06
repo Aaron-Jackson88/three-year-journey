@@ -19,30 +19,36 @@ const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
         {month} {year}
       </h3>
 
-      <div className="grid grid-cols-3 grid-rows-2 gap-2 md:gap-3" style={{ aspectRatio: "3/2" }}>
-        {/* Photo 1 - large, spans 2 rows */}
-        <div className="row-span-2 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
+      <div className="grid grid-cols-3 grid-rows-2 gap-2 md:gap-3" style={{ aspectRatio: "3/4" }}>
+        {/* Photo 1 - large, spans 2 rows. Optimized for horizontal images in vertical slot */}
+        <div className="row-span-2 relative overflow-hidden rounded-lg bg-black/20 flex items-center justify-center">
+          {/* Blurred Background to fill vertical space */}
+          <img
+            src={photos[0]}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover blur-xl opacity-50 scale-110"
+          />
+          {/* The Actual Image - set to contain so it doesn't crop the sides of horizontal photos */}
           <img
             key={`${month}-${year}-0`}
             src={photos[0]}
             alt={`${month} ${year} - 1`}
-            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+            className="relative z-10 h-full w-full object-contain transition-transform duration-500 hover:scale-105"
             onError={(e) => {
-              console.error(`Failed to load image: ${photos[0]}`);
               (e.target as HTMLImageElement).src = "/placeholder.svg";
             }}
           />
         </div>
-        {/* Photos 2-5 - smaller grid */}
+
+        {/* Photos 2-5 - smaller grid slots */}
         {photos.slice(1, 5).map((photo, i) => (
-          <div key={i} className="overflow-hidden rounded-lg bg-muted flex items-center justify-center">
-            <img
+          <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
+             <img
               key={`${month}-${year}-${i+1}`}
               src={photo}
               alt={`${month} ${year} - ${i + 2}`}
               className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
               onError={(e) => {
-                console.error(`Failed to load image: ${photo}`);
                 (e.target as HTMLImageElement).src = "/placeholder.svg";
               }}
             />
