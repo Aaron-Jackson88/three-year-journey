@@ -1,17 +1,19 @@
 import { motion } from "framer-motion";
 import MonthGrid from "./MonthGrid";
+import photoManifest from "../photo-manifest.json";
 
 interface YearPageProps {
   yearLabel: string;
   months: { month: string; year: number }[];
 }
 
-const PLACEHOLDER = "/placeholder.svg";
-
 const YearPage = ({ yearLabel, months }: YearPageProps) => {
   // Determine which year folder to use based on the yearLabel
   const yearIndex = yearLabel.toLowerCase().includes("one") ? 1 : 
                     yearLabel.toLowerCase().includes("two") ? 2 : 3;
+
+  const yearKey = `year${yearIndex}`;
+  const manifestForYear = (photoManifest as any)[yearKey] || {};
 
   return (
     <div className="relative z-10 min-h-screen">
@@ -26,16 +28,31 @@ const YearPage = ({ yearLabel, months }: YearPageProps) => {
           {yearLabel}
         </motion.h2>
 
-        {months.map(({ month, year }) => {
+        {months.filter(({ month, year }) => {
           const monthLower = month.toLowerCase().trim();
-          
-          // Special Case: In Year Three, there's a March 2025 and a March 2026.
-          // For March 2026, we look for a folder named "march_2026".
           const folderName = (yearIndex === 3 && monthLower === "march" && year === 2026) 
             ? "march_2026" 
+            : (yearIndex === 3 && monthLower === "february" && year === 2026)
+            ? "february_2026"
+            : (yearIndex === 3 && monthLower === "january" && year === 2026)
+            ? "january_2026"
+            : monthLower;
+          
+          return manifestForYear[folderName] !== undefined;
+        }).map(({ month, year }) => {
+          const monthLower = month.toLowerCase().trim();
+          
+          // Special Case: In Year Three
+          const folderName = (yearIndex === 3 && monthLower === "march" && year === 2026) 
+            ? "march_2026" 
+            : (yearIndex === 3 && monthLower === "february" && year === 2026)
+            ? "february_2026"
+            : (yearIndex === 3 && monthLower === "january" && year === 2026)
+            ? "january_2026"
             : monthLower;
 
-          const photos = Array.from({ length: 5 }, (_, i) => 
+          const photoCount = manifestForYear[folderName] || 0;
+          const photos = Array.from({ length: photoCount }, (_, i) => 
             `/photos/year${yearIndex}/${folderName}/${i + 1}.jpg`
           );
           

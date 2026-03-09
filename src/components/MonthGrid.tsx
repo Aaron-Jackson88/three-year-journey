@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import SmartImage from "./SmartImage";
 
 interface MonthGridProps {
   month: string;
@@ -7,6 +8,109 @@ interface MonthGridProps {
 }
 
 const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
+  const count = photos.length;
+
+  const renderGrid = () => {
+    switch (count) {
+      case 1:
+        return (
+          <div className="relative overflow-hidden rounded-lg bg-black/20 flex items-center justify-center h-full">
+            <SmartImage
+              src={photos[0]}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover blur-xl opacity-50 scale-110"
+            />
+            <SmartImage
+              src={photos[0]}
+              alt={`${month} ${year} - 1`}
+              className="relative z-10 h-full w-full object-contain transition-transform duration-500 hover:scale-105"
+            />
+          </div>
+        );
+      case 2:
+        return (
+          <div className="grid grid-cols-2 gap-2 md:gap-3 h-full">
+            {photos.map((photo, i) => (
+              <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
+                <SmartImage
+                  src={photo}
+                  alt={`${month} ${year} - ${i + 1}`}
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      case 3:
+        return (
+          <div className="grid grid-cols-2 grid-rows-2 gap-2 md:gap-3 h-full">
+            <div className="row-span-2 relative overflow-hidden rounded-lg bg-black/20 flex items-center justify-center">
+              <SmartImage
+                src={photos[0]}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover blur-xl opacity-50 scale-110"
+              />
+              <SmartImage
+                src={photos[0]}
+                alt={`${month} ${year} - 1`}
+                className="relative z-10 h-full w-full object-contain transition-transform duration-500 hover:scale-105"
+              />
+            </div>
+            {photos.slice(1).map((photo, i) => (
+              <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
+                <SmartImage
+                  src={photo}
+                  alt={`${month} ${year} - ${i + 2}`}
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      case 4:
+        return (
+          <div className="grid grid-cols-2 grid-rows-2 gap-2 md:gap-3 h-full">
+            {photos.map((photo, i) => (
+              <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
+                <SmartImage
+                  src={photo}
+                  alt={`${month} ${year} - ${i + 1}`}
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
+        );
+      case 5:
+      default:
+        return (
+          <div className="grid grid-cols-3 grid-rows-2 gap-2 md:gap-3 h-full">
+            <div className="row-span-2 relative overflow-hidden rounded-lg bg-black/20 flex items-center justify-center">
+              <SmartImage
+                src={photos[0]}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover blur-xl opacity-50 scale-110"
+              />
+              <SmartImage
+                src={photos[0]}
+                alt={`${month} ${year} - 1`}
+                className="relative z-10 h-full w-full object-contain transition-transform duration-500 hover:scale-105"
+              />
+            </div>
+            {photos.slice(1, 5).map((photo, i) => (
+              <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
+                <SmartImage
+                  src={photo}
+                  alt={`${month} ${year} - ${i + 2}`}
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
+        );
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -19,41 +123,8 @@ const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
         {month} {year}
       </h3>
 
-      <div className="grid grid-cols-3 grid-rows-2 gap-2 md:gap-3" style={{ aspectRatio: "3/4" }}>
-        {/* Photo 1 - large, spans 2 rows. Optimized for horizontal images in vertical slot */}
-        <div className="row-span-2 relative overflow-hidden rounded-lg bg-black/20 flex items-center justify-center">
-          {/* Blurred Background to fill vertical space */}
-          <img
-            src={photos[0]}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover blur-xl opacity-50 scale-110"
-          />
-          {/* The Actual Image - set to contain so it doesn't crop the sides of horizontal photos */}
-          <img
-            key={`${month}-${year}-0`}
-            src={photos[0]}
-            alt={`${month} ${year} - 1`}
-            className="relative z-10 h-full w-full object-contain transition-transform duration-500 hover:scale-105"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "/placeholder.svg";
-            }}
-          />
-        </div>
-
-        {/* Photos 2-5 - smaller grid slots */}
-        {photos.slice(1, 5).map((photo, i) => (
-          <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
-             <img
-              key={`${month}-${year}-${i+1}`}
-              src={photo}
-              alt={`${month} ${year} - ${i + 2}`}
-              className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "/placeholder.svg";
-              }}
-            />
-          </div>
-        ))}
+      <div className="w-full" style={{ aspectRatio: "3/4" }}>
+        {renderGrid()}
       </div>
     </motion.div>
   );
