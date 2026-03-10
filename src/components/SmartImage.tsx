@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import heic2any from "heic2any";
 
 interface SmartImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -6,35 +6,55 @@ interface SmartImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 }
 
 const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
-  const [imageSrc, setImageSrc] = useState<string>(src);
+  const [imageSrc, setImageSrc] = useState<string>(""); // Start empty
   const [loading, setLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const imgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" } // Start loading 200px before it enters
+    );
+
+    if (imgRef.current) {
+      observer.observe(imgRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
     let isMounted = true;
     let objectUrl: string | null = null;
 
     const loadImage = async () => {
       try {
+        setLoading(true);
         // Try to fetch the image to check its type
         const response = await fetch(src);
         if (!response.ok) throw new Error("Failed to fetch image");
         
         const blob = await response.blob();
         
-        // Check if it's HEIC by looking at the first few bytes (even if extension is .jpg)
-        // HEIC usually has 'ftyp' at offset 4
+        // HEIC detection by magic bytes
         const buffer = await blob.slice(0, 12).arrayBuffer();
         const header = new Uint8Array(buffer);
         const ftyp = String.fromCharCode(...Array.from(header.slice(4, 12)));
-        
         const isHeic = ftyp.includes("ftypheic") || ftyp.includes("ftypmif1") || ftyp.includes("ftypheis");
 
         if (isHeic) {
-          setLoading(true);
           const convertedBlob = await heic2any({
             blob,
             toType: "image/jpeg",
-            quality: 0.8
+            quality: 0.6 // Slightly lower quality for faster conversion
           });
           
           if (isMounted) {
@@ -43,7 +63,6 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
             setImageSrc(objectUrl);
           }
         } else {
-          // It's already a browser-supported format (JPG or PNG)
           if (isMounted) {
             setImageSrc(src);
           }
@@ -68,17 +87,25 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [src]);
+  }, [src, isVisible]);
 
-  if (loading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center bg-black/10">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold border-t-transparent" />
-      </div>
-    );
-  }
-
-  return <img src={imageSrc} {...props} />;
+  return (
+    <div ref={imgRef} className="relative h-full w-full bg-black/5 overflow-hidden rounded-lg">
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold border-t-transparent opacity-50" />
+        </div>
+      )}
+      {imageSrc && (
+        <img 
+          src={imageSrc} 
+          {...props} 
+          loading="lazy"
+          className={`${props.className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+        />
+      )}
+    </div>
+  );
 };
 
 export default SmartImage;
