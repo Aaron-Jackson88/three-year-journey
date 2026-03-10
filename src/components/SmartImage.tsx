@@ -11,8 +11,10 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
   const [isVisible, setIsVisible] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
-  // Split classes: those for the container and those for the image
-  const allCurrentClasses = props.className || "";
+  // Separate layout-related props from the rest to prevent double-styling
+  const { className, style, ...otherProps } = props;
+  
+  const allCurrentClasses = className || "";
   const layoutClasses = allCurrentClasses.split(" ").filter(c => 
     c === "absolute" || c === "relative" || c === "inset-0" || 
     c.startsWith("z-") || c === "h-full" || c === "w-full" ||
@@ -34,10 +36,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
       { rootMargin: "200px" }
     );
 
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
-    }
-
+    if (imgRef.current) observer.observe(imgRef.current);
     return () => observer.disconnect();
   }, [src]);
 
@@ -55,17 +54,12 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
         
         const blob = await response.blob();
         
-        // --- Magic Byte Detection ---
+        // HEIC detection
         const buffer = await blob.slice(0, 12).arrayBuffer();
         const header = new Uint8Array(buffer);
-        const headerHex = Array.from(header).map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
         const ftyp = String.fromCharCode(...Array.from(header.slice(4, 12)));
-
-        const isHeic = ftyp.includes("ftypheic") || 
-                       ftyp.includes("ftypmif1") || 
-                       ftyp.includes("ftypheis") || 
-                       ftyp.includes("ftyphevc") ||
-                       ftyp.includes("ftypmsf1");
+        const isHeic = ftyp.includes("ftypheic") || ftyp.includes("ftypmif1") || 
+                       ftyp.includes("ftypheis") || ftyp.includes("ftyphevc");
 
         if (isHeic) {
           const convertedBlob = await heic2any({
@@ -105,6 +99,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
     <div 
       ref={imgRef} 
       className={`${layoutClasses} overflow-hidden rounded-lg bg-black/5 ${!layoutClasses.includes('absolute') && !layoutClasses.includes('relative') ? 'relative' : ''}`}
+      style={style}
     >
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center z-20">
@@ -114,8 +109,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
       {imageSrc && (
         <img 
           src={imageSrc} 
-          {...props} 
-          loading="lazy"
+          {...otherProps}
           className={`${imageOnlyClasses} w-full h-full ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         />
       )}

@@ -46,7 +46,7 @@ const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
                 className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
               />
             </div>
-            {photos.slice(1).map((photo, i) => (
+            {photos.slice(1, 3).map((photo, i) => (
               <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
                 <SmartImage
                   src={photo}
@@ -75,22 +75,24 @@ const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
       default:
         return (
           <div className="grid grid-cols-3 grid-rows-2 gap-2 md:gap-3 h-full">
-            <div className="row-span-2 relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
+            <div className="col-span-2 row-span-2 relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
               <SmartImage
                 src={photos[0]}
                 alt={`${month} ${year} - 1`}
                 className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
               />
             </div>
-            {photos.slice(1, 5).map((photo, i) => (
-              <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
-                <SmartImage
-                  src={photo}
-                  alt={`${month} ${year} - ${i + 2}`}
-                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                />
-              </div>
-            ))}
+            <div className="grid grid-rows-2 gap-2 md:gap-3">
+              {photos.slice(1, 3).map((photo, i) => (
+                <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
+                  <SmartImage
+                    src={photo}
+                    alt={`${month} ${year} - ${i + 2}`}
+                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         );
     }
