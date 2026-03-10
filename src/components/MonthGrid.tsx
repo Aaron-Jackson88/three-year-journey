@@ -14,16 +14,11 @@ const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
     switch (count) {
       case 1:
         return (
-          <div className="relative overflow-hidden rounded-lg bg-black/20 flex items-center justify-center h-full">
-            <SmartImage
-              src={photos[0]}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover blur-xl opacity-50 scale-110"
-            />
+          <div className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center h-full">
             <SmartImage
               src={photos[0]}
               alt={`${month} ${year} - 1`}
-              className="relative z-10 h-full w-full object-contain transition-transform duration-500 hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
             />
           </div>
         );
@@ -44,16 +39,11 @@ const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
       case 3:
         return (
           <div className="grid grid-cols-2 grid-rows-2 gap-2 md:gap-3 h-full">
-            <div className="row-span-2 relative overflow-hidden rounded-lg bg-black/20 flex items-center justify-center">
-              <SmartImage
-                src={photos[0]}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover blur-xl opacity-50 scale-110"
-              />
+            <div className="row-span-2 relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
               <SmartImage
                 src={photos[0]}
                 alt={`${month} ${year} - 1`}
-                className="relative z-10 h-full w-full object-contain transition-transform duration-500 hover:scale-105"
+                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
               />
             </div>
             {photos.slice(1).map((photo, i) => (
@@ -85,16 +75,11 @@ const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
       default:
         return (
           <div className="grid grid-cols-3 grid-rows-2 gap-2 md:gap-3 h-full">
-            <div className="row-span-2 relative overflow-hidden rounded-lg bg-black/20 flex items-center justify-center">
-              <SmartImage
-                src={photos[0]}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover blur-xl opacity-50 scale-110"
-              />
+            <div className="row-span-2 relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
               <SmartImage
                 src={photos[0]}
                 alt={`${month} ${year} - 1`}
-                className="relative z-10 h-full w-full object-contain transition-transform duration-500 hover:scale-105"
+                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
               />
             </div>
             {photos.slice(1, 5).map((photo, i) => (

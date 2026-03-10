@@ -11,6 +11,18 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
   const [isVisible, setIsVisible] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
+  // Split classes: those for the container and those for the image
+  const allCurrentClasses = props.className || "";
+  const layoutClasses = allCurrentClasses.split(" ").filter(c => 
+    c === "absolute" || c === "relative" || c === "inset-0" || 
+    c.startsWith("z-") || c === "h-full" || c === "w-full" ||
+    c.startsWith("top-") || c.startsWith("left-") || c.startsWith("right-") || c.startsWith("bottom-")
+  ).join(" ");
+  
+  const imageOnlyClasses = allCurrentClasses.split(" ").filter(c => 
+    !layoutClasses.split(" ").includes(c)
+  ).join(" ");
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -27,7 +39,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
     }
 
     return () => observer.disconnect();
-  }, [src]); // Re-observe if src changes
+  }, [src]);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -44,27 +56,18 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
         const blob = await response.blob();
         
         // --- Magic Byte Detection ---
-        // We look at the actual file header, NOT the extension.
         const buffer = await blob.slice(0, 12).arrayBuffer();
         const header = new Uint8Array(buffer);
         const headerHex = Array.from(header).map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
         const ftyp = String.fromCharCode(...Array.from(header.slice(4, 12)));
 
-        // HEIC/HEIF signatures: 'ftypheic', 'ftypmif1', 'ftypheis', 'ftyphevc', etc.
         const isHeic = ftyp.includes("ftypheic") || 
                        ftyp.includes("ftypmif1") || 
                        ftyp.includes("ftypheis") || 
                        ftyp.includes("ftyphevc") ||
                        ftyp.includes("ftypmsf1");
 
-        // PNG signature: 89 50 4e 47
-        const isPng = headerHex.startsWith("89504e47");
-        
-        // JPEG signature: ff d8 ff
-        const isJpeg = headerHex.startsWith("ffd8ff");
-
         if (isHeic) {
-          // It's a real HEIC file (even if named .jpg) -> Convert it
           const convertedBlob = await heic2any({
             blob,
             toType: "image/jpeg",
@@ -77,8 +80,6 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
             setImageSrc(objectUrl);
           }
         } else {
-          // It's already a browser-friendly format (PNG, JPEG, etc.) 
-          // Use the blob we already downloaded to save time/bandwidth
           if (isMounted) {
             objectUrl = URL.createObjectURL(blob);
             setImageSrc(objectUrl);
@@ -101,9 +102,12 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
   }, [src, isVisible]);
 
   return (
-    <div ref={imgRef} className="relative h-full w-full bg-black/5 overflow-hidden rounded-lg">
+    <div 
+      ref={imgRef} 
+      className={`${layoutClasses} overflow-hidden rounded-lg bg-black/5 ${!layoutClasses.includes('absolute') && !layoutClasses.includes('relative') ? 'relative' : ''}`}
+    >
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center z-20">
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold border-t-transparent opacity-50" />
         </div>
       )}
@@ -112,7 +116,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
           src={imageSrc} 
           {...props} 
           loading="lazy"
-          className={`${props.className} ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
+          className={`${imageOnlyClasses} w-full h-full ${loading ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         />
       )}
     </div>
