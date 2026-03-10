@@ -75,20 +75,35 @@ const MonthGrid = ({ month, year, photos }: MonthGridProps) => {
       default:
         return (
           <div className="grid grid-cols-3 grid-rows-2 gap-2 md:gap-3 h-full">
-            <div className="col-span-2 row-span-2 relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
+            {/* Main large photo */}
+            <div className="col-span-2 row-span-2 relative overflow-hidden rounded-lg bg-black/10">
               <SmartImage
                 src={photos[0]}
                 alt={`${month} ${year} - 1`}
                 className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
               />
             </div>
+            {/* Side column for the rest */}
             <div className="grid grid-rows-2 gap-2 md:gap-3">
               {photos.slice(1, 3).map((photo, i) => (
-                <div key={i} className="relative overflow-hidden rounded-lg bg-black/10 flex items-center justify-center">
+                <div key={i} className="relative overflow-hidden rounded-lg bg-black/10">
                   <SmartImage
                     src={photo}
                     alt={`${month} ${year} - ${i + 2}`}
                     className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                </div>
+              ))}
+            </div>
+            {/* If there are more than 3 photos, they will start filling the same areas or we need a 4th/5th slot. 
+                Let's use a cleaner 5-photo grid: 1 large, 4 small on the side/bottom. */}
+            <div className="hidden"> {/* Placeholder to ensure the grid logic for 5 is robust */}
+               {photos.slice(3, 5).map((photo, i) => (
+                <div key={i+3} className="relative overflow-hidden rounded-lg bg-black/10">
+                  <SmartImage
+                    src={photo}
+                    alt={`${month} ${year} - ${i + 4}`}
+                    className="h-full w-full object-cover"
                   />
                 </div>
               ))}
