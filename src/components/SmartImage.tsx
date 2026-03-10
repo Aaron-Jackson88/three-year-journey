@@ -6,7 +6,7 @@ interface SmartImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 }
 
 const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
-  const [imageSrc, setImageSrc] = useState<string>(""); // Start empty
+  const [imageSrc, setImageSrc] = useState<string>(""); 
   const [loading, setLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
@@ -19,7 +19,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
           observer.disconnect();
         }
       },
-      { rootMargin: "200px" } // Start loading 200px before it enters
+      { rootMargin: "200px" }
     );
 
     if (imgRef.current) {
@@ -27,7 +27,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [src]); // Re-observe if src changes
 
   useEffect(() => {
     if (!isVisible) return;
@@ -38,23 +38,37 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
     const loadImage = async () => {
       try {
         setLoading(true);
-        // Try to fetch the image to check its type
         const response = await fetch(src);
         if (!response.ok) throw new Error("Failed to fetch image");
         
         const blob = await response.blob();
         
-        // HEIC detection by magic bytes
+        // --- Magic Byte Detection ---
+        // We look at the actual file header, NOT the extension.
         const buffer = await blob.slice(0, 12).arrayBuffer();
         const header = new Uint8Array(buffer);
+        const headerHex = Array.from(header).map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
         const ftyp = String.fromCharCode(...Array.from(header.slice(4, 12)));
-        const isHeic = ftyp.includes("ftypheic") || ftyp.includes("ftypmif1") || ftyp.includes("ftypheis");
+
+        // HEIC/HEIF signatures: 'ftypheic', 'ftypmif1', 'ftypheis', 'ftyphevc', etc.
+        const isHeic = ftyp.includes("ftypheic") || 
+                       ftyp.includes("ftypmif1") || 
+                       ftyp.includes("ftypheis") || 
+                       ftyp.includes("ftyphevc") ||
+                       ftyp.includes("ftypmsf1");
+
+        // PNG signature: 89 50 4e 47
+        const isPng = headerHex.startsWith("89504e47");
+        
+        // JPEG signature: ff d8 ff
+        const isJpeg = headerHex.startsWith("ffd8ff");
 
         if (isHeic) {
+          // It's a real HEIC file (even if named .jpg) -> Convert it
           const convertedBlob = await heic2any({
             blob,
             toType: "image/jpeg",
-            quality: 0.6 // Slightly lower quality for faster conversion
+            quality: 0.6
           });
           
           if (isMounted) {
@@ -63,19 +77,18 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
             setImageSrc(objectUrl);
           }
         } else {
+          // It's already a browser-friendly format (PNG, JPEG, etc.) 
+          // Use the blob we already downloaded to save time/bandwidth
           if (isMounted) {
-            setImageSrc(src);
+            objectUrl = URL.createObjectURL(blob);
+            setImageSrc(objectUrl);
           }
         }
       } catch (error) {
         console.error("Error loading image:", src, error);
-        if (isMounted) {
-          setImageSrc("/placeholder.svg");
-        }
+        if (isMounted) setImageSrc("/placeholder.svg");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -83,9 +96,7 @@ const SmartImage: React.FC<SmartImageProps> = ({ src, ...props }) => {
 
     return () => {
       isMounted = false;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [src, isVisible]);
 
